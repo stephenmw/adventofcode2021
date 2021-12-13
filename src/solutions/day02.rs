@@ -25,7 +25,7 @@ pub fn problem2(input: &str) -> String {
             Direction::Forward => {
                 x += command.distance;
                 y += command.distance * aim;
-            },
+            }
             Direction::Down => aim += command.distance,
             Direction::Up => aim -= command.distance,
         };

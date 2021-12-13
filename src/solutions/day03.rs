@@ -36,7 +36,11 @@ fn filter_common(mut nums: Vec<Vec<bool>>, invert: bool) -> Vec<bool> {
 }
 
 fn most_common_digit(nums: &[Vec<bool>], index: usize) -> bool {
-    let ones = nums.iter().map(|digits| digits[index]).filter(|&x| x).count();
+    let ones = nums
+        .iter()
+        .map(|digits| digits[index])
+        .filter(|&x| x)
+        .count();
     let zeros = nums.len() - ones;
     ones >= zeros
 }
@@ -67,7 +71,6 @@ mod parser {
         parser(input)
     }
 }
-
 
 #[cfg(test)]
 mod tests {

@@ -5,7 +5,7 @@ pub use nom::{
     character::complete::{line_ending, one_of},
     combinator::{map, map_res, verify},
     multi::{many1, separated_list1},
-    sequence::separated_pair,
+    sequence::{preceded, separated_pair, tuple},
     IResult,
 };
 
