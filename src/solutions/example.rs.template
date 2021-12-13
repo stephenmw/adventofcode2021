@@ -1,0 +1,31 @@
+pub fn problem1(input: &str) -> String {
+    unimplemented!();
+}
+
+pub fn problem2(input: &str) -> String {
+    unimplemented!();
+}
+
+mod parser {
+    use crate::lib::combinators::*;
+
+    pub fn parse(input: &str) -> IResult<&str, Vec<_>> {
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const EXAMPLE_INPUT: &str = "";
+
+    #[test]
+    fn problem1_test() {
+        assert_eq!(problem1(EXAMPLE_INPUT), "7")
+    }
+    #[test]
+    fn problem2_test() {
+        //assert_eq!(problem2(EXAMPLE_INPUT), "5")
+    }
+}
