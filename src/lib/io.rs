@@ -2,7 +2,6 @@ use std::fmt;
 use std::fs;
 use std::io;
 
-
 #[allow(dead_code)]
 pub fn write_sep_ln<I, O, T, U>(mut output: O, sep: T, mut input: I) -> Result<(), fmt::Error>
 where

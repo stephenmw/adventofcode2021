@@ -84,14 +84,7 @@ fn find_paths2(g: &Graph) -> Vec<Vec<usize>> {
 }
 
 mod graph_parser {
-    use nom::{
-        bytes::complete::{tag, take_while},
-        character::complete::line_ending,
-        combinator::verify,
-        multi::separated_list1,
-        sequence::separated_pair,
-        IResult,
-    };
+    use crate::lib::combinators::*;
     use std::collections::HashMap;
 
     #[derive(Clone, Debug, Default)]
@@ -156,7 +149,6 @@ mod graph_parser {
     }
 
     pub fn parse(input: &str) -> IResult<&str, Graph> {
-        let is_alphabetic = |c: char| c.is_ascii_alphabetic();
         let node_name = || verify(take_while(is_alphabetic), |x: &str| !x.is_empty());
         let edge = separated_pair(node_name(), tag("-"), node_name());
         let mut parser = separated_list1(line_ending, edge);

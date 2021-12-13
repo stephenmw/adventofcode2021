@@ -7,8 +7,16 @@ use std::env;
 fn main() {
     let mut args = env::args();
     args.next();
-    let day: usize = args.next().expect("not enough args").parse().expect("failed to parse arg");
-    let problem: usize = args.next().expect("not enough args").parse().expect("failed to parse arg");
+    let day: usize = args
+        .next()
+        .expect("not enough args")
+        .parse()
+        .expect("failed to parse arg");
+    let problem: usize = args
+        .next()
+        .expect("not enough args")
+        .parse()
+        .expect("failed to parse arg");
 
     let input = load_puzzle_input(day).expect("failed to load puzzle input");
 
