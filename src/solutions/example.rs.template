@@ -1,17 +1,18 @@
 pub fn problem1(input: &str) -> String {
-    //let nums = parser::parse(input).unwrap().1;
+    //let data = parser::parse(input).unwrap().1;
     //format!("{}", ans)
     unimplemented!();
 }
 
-pub fn problem2(input: &str) -> String {
+pub fn problem2(_input: &str) -> String {
     unimplemented!();
 }
 
 mod parser {
     use crate::lib::combinators::*;
 
-    pub fn parse(input: &str) -> IResult<&str, Vec<_>> {
+    pub fn parse(input: &str) -> IResult<&str, ()> {
+        unimplemented!();
     }
 }
 
@@ -24,10 +25,10 @@ mod tests {
 
     #[test]
     fn problem1_test() {
-        assert_eq!(problem1(EXAMPLE_INPUT), "7")
+        assert_eq!(problem1(EXAMPLE_INPUT), "")
     }
     #[test]
     fn problem2_test() {
-        //assert_eq!(problem2(EXAMPLE_INPUT), "5")
+        //assert_eq!(problem2(EXAMPLE_INPUT), "")
     }
 }
