@@ -3,7 +3,7 @@ use std::str::FromStr;
 pub use nom::{
     bytes::complete::{is_a, tag, take_while},
     character::complete::line_ending,
-    combinator::{map_res, verify},
+    combinator::{map, map_res, verify},
     multi::separated_list1,
     sequence::separated_pair,
     IResult,
