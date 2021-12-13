@@ -83,8 +83,8 @@ mod parser {
     use crate::lib::combinators::*;
 
     pub fn parse(input: &str) -> IResult<&str, (Vec<i32>, Vec<Board>)> {
-        let drawn = separated_list1(tag(","), uint_parser::<i32>);
-        let row = preceded(space0, separated_list1(space1, uint_parser::<i32>));
+        let drawn = separated_list1(tag(","), uint::<i32>);
+        let row = preceded(space0, separated_list1(space1, uint::<i32>));
         let board = map(separated_list1(line_ending, row), |vs| Board::new(vs));
         let boards = separated_list1(tuple((line_ending, line_ending)), board);
         let parser = separated_pair(drawn, tuple((line_ending, line_ending)), boards);

@@ -39,7 +39,7 @@ mod parser {
     use crate::lib::combinators::*;
 
     pub fn parse(input: &str) -> IResult<&str, Vec<usize>> {
-        let mut parser = separated_list1(line_ending, uint_parser);
+        let mut parser = separated_list1(line_ending, uint);
         parser(input)
     }
 }

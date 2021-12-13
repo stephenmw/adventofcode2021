@@ -97,13 +97,13 @@ mod parser {
 
     pub fn parse(input: &str) -> IResult<&str, (Vec<Coordinate>, Vec<Fold>)> {
         let coordinate = map(
-            separated_pair(uint_parser::<usize>, tag(","), uint_parser::<usize>),
+            separated_pair(uint::<usize>, tag(","), uint::<usize>),
             |(x, y)| Coordinate { x: x, y: y },
         );
         let fold = map(
             preceded(
                 tag("fold along "),
-                separated_pair(one_of("xy"), tag("="), uint_parser::<usize>),
+                separated_pair(one_of("xy"), tag("="), uint::<usize>),
             ),
             |(a, l)| Fold { axis: a, loc: l },
         );

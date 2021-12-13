@@ -64,7 +64,7 @@ mod parser {
     use crate::lib::combinators::*;
 
     pub fn parse(input: &str) -> IResult<&str, Vec<Command>> {
-        let distance = uint_parser::<i32>;
+        let distance = uint::<i32>;
         let direction = map_res(take_while(is_alphabetic), |x: &str| x.parse());
         let command = map(
             separated_pair(direction, tag(" "), distance),
