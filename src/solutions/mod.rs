@@ -3,6 +3,7 @@ use std::collections::HashMap;
 mod day01;
 mod day02;
 mod day03;
+mod day04;
 mod day12;
 mod day13;
 
@@ -16,6 +17,8 @@ fn init_solutions() -> HashMap<(usize, usize), Solution> {
     ret.insert((2, 2), &day02::problem2 as Solution);
     ret.insert((3, 1), &day03::problem1 as Solution);
     ret.insert((3, 2), &day03::problem2 as Solution);
+    ret.insert((4, 1), &day04::problem1 as Solution);
+    ret.insert((4, 2), &day04::problem2 as Solution);
     ret.insert((12, 1), &day12::problem1 as Solution);
     ret.insert((12, 2), &day12::problem2 as Solution);
     ret.insert((13, 1), &day13::problem1 as Solution);
