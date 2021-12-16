@@ -4,6 +4,7 @@ mod day01;
 mod day02;
 mod day03;
 mod day04;
+mod day06;
 mod day12;
 mod day13;
 mod day14;
@@ -20,6 +21,8 @@ fn init_solutions() -> HashMap<(usize, usize), Solution> {
     ret.insert((3, 2), &day03::problem2 as Solution);
     ret.insert((4, 1), &day04::problem1 as Solution);
     ret.insert((4, 2), &day04::problem2 as Solution);
+    ret.insert((6, 1), &day06::problem1 as Solution);
+    ret.insert((6, 2), &day06::problem2 as Solution);
     ret.insert((12, 1), &day12::problem1 as Solution);
     ret.insert((12, 2), &day12::problem2 as Solution);
     ret.insert((13, 1), &day13::problem1 as Solution);
