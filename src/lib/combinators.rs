@@ -3,7 +3,7 @@ use std::str::FromStr;
 pub use nom::{
     bytes::complete::{is_a, tag, take_while},
     character::complete::{anychar, line_ending, multispace0, one_of, space0, space1},
-    combinator::{eof, map, map_res, verify},
+    combinator::{eof, map, map_res, opt, recognize, verify},
     multi::{many1, separated_list1},
     sequence::{preceded, separated_pair, terminated, tuple},
     IResult,
@@ -16,6 +16,13 @@ pub fn is_alphabetic(c: char) -> bool {
 pub fn uint<T: FromStr>(input: &str) -> IResult<&str, T> {
     let digits = is_a("0123456789");
     let mut parser = map_res(digits, |x: &str| x.parse());
+    parser(input)
+}
+
+pub fn int<T: FromStr>(input: &str) -> IResult<&str, T> {
+    let digits = is_a("0123456789");
+    let num = tuple((opt(tag("-")), digits));
+    let mut parser = map_res(recognize(num), |x: &str| x.parse());
     parser(input)
 }
 
