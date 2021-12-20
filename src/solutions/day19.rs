@@ -62,6 +62,8 @@ pub struct Scanner {
     beacons: Vec<Point>,
 }
 
+type PointDiff = Point;
+
 impl Scanner {
     fn find_overlap(&self, other: &Scanner) -> Option<Transformation> {
         for sp in self.beacons.iter() {
@@ -84,7 +86,7 @@ impl Scanner {
         fn distance_diff_hashmap(
             beacons: &[Point],
             p: &Point,
-        ) -> HashMap<i32, Vec<(Point, Point)>> {
+        ) -> HashMap<i32, Vec<(Point, PointDiff)>> {
             let mut m = HashMap::new();
 
             for b in beacons {
@@ -173,7 +175,7 @@ pub struct Point {
 }
 
 impl Point {
-    fn translate(&self, diff: &Point) -> Point {
+    fn translate(&self, diff: &PointDiff) -> Point {
         Point {
             x: self.x + diff.x,
             y: self.y + diff.y,
@@ -181,8 +183,8 @@ impl Point {
         }
     }
 
-    fn diff(&self, other: &Point) -> Point {
-        Point {
+    fn diff(&self, other: &Point) -> PointDiff {
+        PointDiff {
             x: self.x - other.x,
             y: self.y - other.y,
             z: self.z - other.z,
@@ -351,7 +353,7 @@ impl Default for Rotation {
 #[derive(Clone, Debug, Default, Eq, PartialEq, Hash)]
 struct Transformation {
     rotation: Rotation,
-    translation: Point,
+    translation: PointDiff,
 }
 
 impl Transformation {
