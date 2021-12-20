@@ -12,6 +12,7 @@ mod day15;
 mod day16;
 mod day17;
 mod day18;
+mod day19;
 
 type Solution = &'static dyn Fn(&str) -> String;
 
@@ -41,6 +42,8 @@ fn init_solutions() -> HashMap<(usize, usize), Solution> {
     ret.insert((17, 2), &day17::problem2 as Solution);
     ret.insert((18, 1), &day18::problem1 as Solution);
     ret.insert((18, 2), &day18::problem2 as Solution);
+    ret.insert((19, 1), &day19::problem1 as Solution);
+    ret.insert((19, 2), &day19::problem2 as Solution);
     ret
 }
 
