@@ -5,10 +5,11 @@ pub fn problem1(input: &str) -> String {
     let unsolved_scanners = parser::parse(input).unwrap().1;
     let solved_scanners = solve_scanners(unsolved_scanners);
 
-    let mut beacons: Vec<_> = solved_scanners.iter()
+    let mut beacons: Vec<_> = solved_scanners
+        .iter()
         .flat_map(|(s, _)| s.beacons.iter())
         .collect();
-    
+
     beacons.sort();
     beacons.dedup();
 
@@ -19,10 +20,8 @@ pub fn problem2(input: &str) -> String {
     let unsolved_scanners = parser::parse(input).unwrap().1;
     let solved_scanners = solve_scanners(unsolved_scanners);
 
-    let scanner_coordinates: Vec<_> = solved_scanners.iter()
-        .map(|(_, t)| t.translation)
-        .collect();
-    
+    let scanner_coordinates: Vec<_> = solved_scanners.iter().map(|(_, t)| t.translation).collect();
+
     let mut max = 0;
 
     for a in scanner_coordinates.iter() {
@@ -573,9 +572,7 @@ mod tests {
         let scanners = parser::parse(EXAMPLE_INPUT).unwrap().1;
         assert_eq!(scanners[0]._id, 0);
         assert_eq!(scanners[1]._id, 1);
-        let ans = scanners[0].find_overlap(
-            &scanners[1],
-        );
+        let ans = scanners[0].find_overlap(&scanners[1]);
         assert_eq!(
             ans,
             Some(Transformation {
