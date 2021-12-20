@@ -12,10 +12,6 @@ pub fn problem1(input: &str) -> String {
     beacons.sort();
     beacons.dedup();
 
-    for b in beacons.iter() {
-        println!("{}",b);
-    }
-
     format!("{}", beacons.len())
 }
 
@@ -112,6 +108,10 @@ impl Scanner {
                     }
                 }
             }
+        }
+
+        if candidates.len() < 12 {
+            return None;
         }
 
         let mut rotations = HashMap::new();
