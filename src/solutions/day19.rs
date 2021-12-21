@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 use std::fmt;
 
+use rayon::iter::Either;
+use rayon::prelude::*;
+
 pub fn problem1(input: &str) -> String {
     let unsolved_scanners = parser::parse(input).unwrap().1;
     let solved_scanners = solve_scanners(unsolved_scanners);
@@ -39,16 +42,17 @@ fn solve_scanners(mut scanners: Vec<Scanner>) -> Vec<Scanner> {
 
     useful_scanners.push(scanners.swap_remove(0));
     while let Some(cur) = useful_scanners.pop() {
-        let mut i = 0;
-        while i < scanners.len() {
-            if let Some(transform) = cur.find_overlap(&scanners[i]) {
-                let mut new_scanner = scanners.swap_remove(i);
-                new_scanner.apply_transformation(&transform);
-                useful_scanners.push(new_scanner);
-            } else {
-                i += 1;
-            }
-        }
+        let (new_useful, not_ready): (Vec<_>, Vec<_>) =
+            scanners.par_drain(..).partition_map(|mut s| {
+                if let Some(transform) = cur.find_overlap(&s) {
+                    s.apply_transformation(&transform);
+                    Either::Left(s)
+                } else {
+                    Either::Right(s)
+                }
+            });
+        useful_scanners.extend(new_useful);
+        scanners.extend(not_ready);
         done_scanners.push(cur);
     }
 
