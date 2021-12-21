@@ -7,7 +7,7 @@ pub fn problem1(input: &str) -> String {
 
     let mut beacons: Vec<_> = solved_scanners
         .iter()
-        .flat_map(|(s, _)| s.beacons.iter())
+        .flat_map(|s| s.beacons.iter())
         .collect();
 
     beacons.sort();
@@ -20,7 +20,7 @@ pub fn problem2(input: &str) -> String {
     let unsolved_scanners = parser::parse(input).unwrap().1;
     let solved_scanners = solve_scanners(unsolved_scanners);
 
-    let scanner_coordinates: Vec<_> = solved_scanners.iter().map(|(_, t)| t.translation).collect();
+    let scanner_coordinates: Vec<_> = solved_scanners.iter().map(|s| s.location).collect();
 
     let mut max = 0;
 
@@ -33,18 +33,18 @@ pub fn problem2(input: &str) -> String {
     format!("{}", max)
 }
 
-fn solve_scanners(mut scanners: Vec<Scanner>) -> Vec<(Scanner, Transformation)> {
+fn solve_scanners(mut scanners: Vec<Scanner>) -> Vec<Scanner> {
     let mut useful_scanners = Vec::new();
     let mut done_scanners = Vec::new();
 
-    useful_scanners.push((scanners.swap_remove(0), Transformation::default()));
+    useful_scanners.push(scanners.swap_remove(0));
     while let Some(cur) = useful_scanners.pop() {
         let mut i = 0;
         while i < scanners.len() {
-            if let Some(transform) = cur.0.find_overlap(&scanners[i]) {
+            if let Some(transform) = cur.find_overlap(&scanners[i]) {
                 let mut new_scanner = scanners.swap_remove(i);
                 new_scanner.apply_transformation(&transform);
-                useful_scanners.push((new_scanner, transform));
+                useful_scanners.push(new_scanner);
             } else {
                 i += 1;
             }
@@ -58,6 +58,7 @@ fn solve_scanners(mut scanners: Vec<Scanner>) -> Vec<(Scanner, Transformation)> 
 
 pub struct Scanner {
     _id: i32,
+    location: Point,
     beacons: Vec<Point>,
 }
 
@@ -153,6 +154,7 @@ impl Scanner {
     }
 
     fn apply_transformation(&mut self, t: &Transformation) {
+        self.location = t.apply(&self.location);
         self.beacons.iter_mut().for_each(|x| *x = t.apply(x));
     }
 }
@@ -161,6 +163,7 @@ impl From<(i32, Vec<Point>)> for Scanner {
     fn from(s: (i32, Vec<Point>)) -> Self {
         Scanner {
             _id: s.0,
+            location: Point::default(),
             beacons: s.1,
         }
     }
