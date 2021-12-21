@@ -45,27 +45,9 @@ impl Operator {
             2 => self.packets.iter().map(|p| p.eval()).min().unwrap(),
             3 => self.packets.iter().map(|p| p.eval()).max().unwrap(),
             4 => panic!("operator with id 4 (literal)"),
-            5 => {
-                if self.packets[0].eval() > self.packets[1].eval() {
-                    1
-                } else {
-                    0
-                }
-            }
-            6 => {
-                if self.packets[0].eval() < self.packets[1].eval() {
-                    1
-                } else {
-                    0
-                }
-            }
-            7 => {
-                if self.packets[0].eval() == self.packets[1].eval() {
-                    1
-                } else {
-                    0
-                }
-            }
+            5 => (self.packets[0].eval() > self.packets[1].eval()) as u64,
+            6 => (self.packets[0].eval() < self.packets[1].eval()) as u64,
+            7 => (self.packets[0].eval() == self.packets[1].eval()) as u64,
             _ => panic!("unknown type_id"),
         }
     }
