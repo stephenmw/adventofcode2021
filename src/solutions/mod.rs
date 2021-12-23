@@ -20,36 +20,30 @@ type Solution = &'static dyn Fn(&str) -> String;
 
 fn init_solutions() -> HashMap<(usize, usize), Solution> {
     let mut ret = HashMap::new();
-    ret.insert((1, 1), &day01::problem1 as Solution);
-    ret.insert((1, 2), &day01::problem2 as Solution);
-    ret.insert((2, 1), &day02::problem1 as Solution);
-    ret.insert((2, 2), &day02::problem2 as Solution);
-    ret.insert((3, 1), &day03::problem1 as Solution);
-    ret.insert((3, 2), &day03::problem2 as Solution);
-    ret.insert((4, 1), &day04::problem1 as Solution);
-    ret.insert((4, 2), &day04::problem2 as Solution);
-    ret.insert((6, 1), &day06::problem1 as Solution);
-    ret.insert((6, 2), &day06::problem2 as Solution);
-    ret.insert((12, 1), &day12::problem1 as Solution);
-    ret.insert((12, 2), &day12::problem2 as Solution);
-    ret.insert((13, 1), &day13::problem1 as Solution);
-    ret.insert((13, 2), &day13::problem2 as Solution);
-    ret.insert((14, 1), &day14::problem1 as Solution);
-    ret.insert((14, 2), &day14::problem2 as Solution);
-    ret.insert((15, 1), &day15::problem1 as Solution);
-    ret.insert((15, 2), &day15::problem2 as Solution);
-    ret.insert((16, 1), &day16::problem1 as Solution);
-    ret.insert((16, 2), &day16::problem2 as Solution);
-    ret.insert((17, 1), &day17::problem1 as Solution);
-    ret.insert((17, 2), &day17::problem2 as Solution);
-    ret.insert((18, 1), &day18::problem1 as Solution);
-    ret.insert((18, 2), &day18::problem2 as Solution);
-    ret.insert((19, 1), &day19::problem1 as Solution);
-    ret.insert((19, 2), &day19::problem2 as Solution);
-    ret.insert((20, 1), &day20::problem1 as Solution);
-    ret.insert((20, 2), &day20::problem2 as Solution);
-    ret.insert((21, 1), &day21::problem1 as Solution);
-    ret.insert((21, 2), &day21::problem2 as Solution);
+
+    macro_rules! day {
+        ($x:expr,$y:tt) => {
+            ret.insert(($x, 1), &$y::problem1 as Solution);
+            ret.insert(($x, 2), &$y::problem2 as Solution);
+        };
+    }
+
+    day!(1, day01);
+    day!(2, day02);
+    day!(3, day03);
+    day!(4, day04);
+    day!(6, day06);
+    day!(12, day12);
+    day!(13, day13);
+    day!(14, day14);
+    day!(15, day15);
+    day!(16, day16);
+    day!(17, day17);
+    day!(18, day18);
+    day!(19, day19);
+    day!(20, day20);
+    day!(21, day21);
+
     ret
 }
 
