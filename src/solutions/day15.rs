@@ -1,19 +1,19 @@
+use crate::lib::grid::Point;
+
 use std::cmp::Reverse;
 use std::collections::{BinaryHeap, HashSet};
 
 pub fn problem1(input: &str) -> String {
-    let data = parser::parse(input).unwrap().1;
-    let grid = Grid::new(data);
+    let grid = parser::parse(input).unwrap().1;
     let start = Point::new(0, 0);
     let (x_len, y_len) = grid.size();
     let end = Point::new(x_len - 1, y_len - 1);
-    let ans = least_cost_path(start, end, |p| grid.get(p));
+    let ans = least_cost_path(start, end, |p| grid.get(p).copied());
     format!("{}", ans)
 }
 
 pub fn problem2(input: &str) -> String {
-    let data = parser::parse(input).unwrap().1;
-    let grid = Grid::new(data);
+    let grid = parser::parse(input).unwrap().1;
     let start = Point::new(0, 0);
     let (x_len, y_len) = grid.size();
     let end = Point::new(x_len * 5 - 1, y_len * 5 - 1);
@@ -45,7 +45,7 @@ where
     seen.insert(start);
     let mut frontier = BinaryHeap::new();
 
-    for p in Direction::iter().filter_map(|d| start.next(d)) {
+    for p in start.neighbors() {
         frontier.push(Reverse((0, p)));
     }
 
@@ -67,7 +67,7 @@ where
             return new_cost;
         }
 
-        for p in Direction::iter().filter_map(|d| cur.next(d)) {
+        for p in cur.neighbors() {
             frontier.push(Reverse((new_cost, p)));
         }
     }
@@ -75,75 +75,15 @@ where
     panic!("least_cost_path: no valid path");
 }
 
-struct Grid {
-    data: Vec<Vec<u32>>,
-}
-
-impl Grid {
-    fn new(data: Vec<Vec<u32>>) -> Self {
-        assert!(!data.is_empty() && !data[0].is_empty());
-        Grid { data: data }
-    }
-
-    fn get(&self, p: Point) -> Option<u32> {
-        self.data.get(p.y)?.get(p.x).copied()
-    }
-
-    fn size(&self) -> (usize, usize) {
-        (self.data[0].len(), self.data.len())
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
-struct Point {
-    x: usize,
-    y: usize,
-}
-
-impl Point {
-    fn new(x: usize, y: usize) -> Self {
-        Point { x: x, y: y }
-    }
-
-    fn next(&self, d: Direction) -> Option<Point> {
-        let p = match d {
-            Direction::Up => Point::new(self.x, self.y.checked_sub(1)?),
-            Direction::Down => Point::new(self.x, self.y.checked_add(1)?),
-            Direction::Left => Point::new(self.x.checked_sub(1)?, self.y),
-            Direction::Right => Point::new(self.x.checked_add(1)?, self.y),
-        };
-        Some(p)
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
-enum Direction {
-    Up,
-    Down,
-    Left,
-    Right,
-}
-
-impl Direction {
-    fn iter() -> impl Iterator<Item = Self> {
-        [
-            Direction::Up,
-            Direction::Down,
-            Direction::Left,
-            Direction::Right,
-        ]
-        .into_iter()
-    }
-}
-
 mod parser {
     use crate::lib::combinators::*;
+    use crate::lib::grid::Grid;
 
-    pub fn parse(input: &str) -> IResult<&str, Vec<Vec<u32>>> {
+    pub fn parse(input: &str) -> IResult<&str, Grid<u32>> {
         let num = map_res(one_of("0123456789"), |x: char| x.to_digit(10).ok_or(()));
         let row = many1(num);
-        let matrix = separated_list1(line_ending, row);
-        complete(matrix)(input)
+        let grid = map(separated_list1(line_ending, row), |x| x.into());
+        complete(grid)(input)
     }
 }
 
