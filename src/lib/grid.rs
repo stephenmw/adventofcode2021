@@ -13,6 +13,10 @@ impl<T> Grid<T> {
         self.cells.get(p.y)?.get(p.x)
     }
 
+    pub fn get_mut(&mut self, p: Point) -> Option<&mut T> {
+        self.cells.get_mut(p.y)?.get_mut(p.x)
+    }
+
     pub fn size(&self) -> (usize, usize) {
         (self.cells[0].len(), self.cells.len())
     }
@@ -51,9 +55,20 @@ impl Point {
         Some(p)
     }
 
-    pub fn neighbors(&self) -> impl Iterator<Item = Point> {
-        let p = *self;
-        Direction::iter().filter_map(move |d| p.next(d))
+    pub fn neighbors<'a>(&'a self) -> impl Iterator<Item = Point> + 'a {
+        Direction::iter().filter_map(|d| self.next(d))
+    }
+
+    pub fn neighbors8<'a>(&'a self) -> impl Iterator<Item = Point> + 'a {
+        fn apply_offset(p: &Point, dx: isize, dy: isize) -> Option<Point> {
+            Some(Point {
+                x: (p.x as isize + dx).try_into().ok()?,
+                y: (p.y as isize + dy).try_into().ok()?,
+            })
+        }
+
+        let offsets = (-1..=1).flat_map(|y| (-1..=1).map(move |x| (x, y)));
+        offsets.filter_map(|(dx, dy)| apply_offset(self, dx, dy))
     }
 }
 

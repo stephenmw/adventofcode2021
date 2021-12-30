@@ -6,6 +6,7 @@ mod day03;
 mod day04;
 mod day06;
 mod day09;
+mod day11;
 mod day12;
 mod day13;
 mod day14;
@@ -36,6 +37,7 @@ fn init_solutions() -> HashMap<(usize, usize), Solution> {
     day!(4, day04);
     day!(6, day06);
     day!(9, day09);
+    day!(11, day11);
     day!(12, day12);
     day!(13, day13);
     day!(14, day14);
