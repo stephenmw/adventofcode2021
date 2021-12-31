@@ -13,7 +13,7 @@ pub fn problem2(input: &str) -> String {
     fn cost(nums: &[i32], i: i32) -> usize {
         nums.iter()
             .map(|n| (n - i).abs()) // distance
-            .map(|n| n * (n+1) / 2) // sum of 1 to n
+            .map(|n| n * (n + 1) / 2) // sum of 1 to n
             .sum::<i32>() as usize
     }
 
