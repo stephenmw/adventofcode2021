@@ -25,6 +25,17 @@ impl<T> Grid<T> {
         let (x_len, y_len) = self.size();
         (0..y_len).flat_map(move |y| (0..x_len).map(move |x| Point::new(x, y)))
     }
+
+    pub fn neighbor_wrapping(&self, p: Point, d: Direction) -> Point {
+        let (x_len, y_len) = self.size();
+
+        match d {
+            Direction::Up => Point::new(p.x, (p.y + 1) % y_len),
+            Direction::Down => Point::new(p.x, p.y.checked_sub(1).unwrap_or(y_len - 1)),
+            Direction::Left => Point::new(p.x.checked_sub(1).unwrap_or(x_len - 1), p.y),
+            Direction::Right => Point::new((p.x + 1) % x_len, p.y),
+        }
+    }
 }
 
 impl<T> From<Vec<Vec<T>>> for Grid<T> {
