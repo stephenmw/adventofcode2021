@@ -1,8 +1,5 @@
-use std::cell::RefCell;
 use std::fmt;
 use std::fmt::Write;
-use std::mem;
-use std::rc::Rc;
 use tree_walker::TreeWalker;
 
 pub fn problem1(input: &str) -> String {
@@ -16,8 +13,7 @@ pub fn problem2(input: &str) -> String {
         .filter(|(i, j)| i != j)
         .map(|(i, j)| {
             let mut a = nums[i].clone();
-            let b = nums[j].clone();
-            a.add(b);
+            a.add(&nums[j]);
             a.magnitude()
         })
         .max()
@@ -30,7 +26,7 @@ fn add_nums(input: &str) -> SnailfishNum {
     let ans = nums
         .into_iter()
         .reduce(|mut a, b| {
-            a.add(b);
+            a.add(&b);
             a
         })
         .unwrap();
@@ -40,29 +36,25 @@ fn add_nums(input: &str) -> SnailfishNum {
 mod tree_walker {
     use super::*;
 
-    #[derive(Clone, Debug)]
+    #[derive(Clone, Debug, Default)]
     pub struct TreeWalker {
-        root: Rc<RefCell<SnailfishNum>>,
         stack: Vec<StackEntry>,
     }
 
     impl TreeWalker {
-        pub fn new(root: Rc<RefCell<SnailfishNum>>) -> Self {
-            TreeWalker {
-                root: root,
-                stack: Vec::new(),
-            }
+        pub fn new() -> Self {
+            Self::default()
         }
 
-        pub fn cursor(&self) -> Rc<RefCell<SnailfishNum>> {
+        pub fn cursor(&self, num: &SnailfishNum) -> usize {
             let entry = match self.stack.last() {
                 Some(x) => x,
-                None => return self.root.clone(),
+                None => return num.root,
             };
 
             match entry.dir {
-                Direction::Left => entry.node.borrow().as_pair().unwrap().left.clone(),
-                Direction::Right => entry.node.borrow().as_pair().unwrap().right.clone(),
+                Direction::Left => num.nodes[entry.node].as_pair().unwrap().left,
+                Direction::Right => num.nodes[entry.node].as_pair().unwrap().right,
             }
         }
 
@@ -70,55 +62,55 @@ mod tree_walker {
             self.stack.len() + 1
         }
 
-        pub fn left(&mut self) -> Option<Rc<RefCell<SnailfishNum>>> {
-            let cur = self.cursor();
-            let next = cur.borrow().as_pair()?.left.clone();
+        pub fn left(&mut self, num: &SnailfishNum) -> Option<usize> {
+            let cur = self.cursor(num);
+            let next = num.nodes[cur].as_pair()?.left;
             self.stack.push(StackEntry::new(cur, Direction::Left));
             Some(next)
         }
 
-        pub fn right(&mut self) -> Option<Rc<RefCell<SnailfishNum>>> {
-            let cur = self.cursor();
-            let next = cur.borrow().as_pair()?.right.clone();
+        pub fn right(&mut self, num: &SnailfishNum) -> Option<usize> {
+            let cur = self.cursor(num);
+            let next = num.nodes[cur].as_pair()?.right;
             self.stack.push(StackEntry::new(cur, Direction::Right));
             Some(next)
         }
 
-        pub fn up(&mut self) -> Option<Rc<RefCell<SnailfishNum>>> {
+        pub fn up(&mut self, num: &SnailfishNum) -> Option<usize> {
             if self.stack.pop().is_none() {
                 return None;
             }
-            Some(self.cursor())
+            Some(self.cursor(num))
         }
 
-        pub fn next(&mut self) -> Option<Rc<RefCell<SnailfishNum>>> {
-            if self.left().is_some() {
-                while let Some(_) = self.left() {}
-                return Some(self.cursor());
+        pub fn next(&mut self, num: &SnailfishNum) -> Option<usize> {
+            if self.left(num).is_some() {
+                while let Some(_) = self.left(num) {}
+                return Some(self.cursor(num));
             }
 
             loop {
                 let entry = self.stack.pop()?;
                 if entry.dir == Direction::Left {
-                    self.right();
-                    while let Some(_) = self.left() {}
-                    return Some(self.cursor());
+                    self.right(num);
+                    while let Some(_) = self.left(num) {}
+                    return Some(self.cursor(num));
                 }
             }
         }
 
-        pub fn prev(&mut self) -> Option<Rc<RefCell<SnailfishNum>>> {
-            if self.right().is_some() {
-                while let Some(_) = self.right() {}
-                return Some(self.cursor());
+        pub fn prev(&mut self, num: &SnailfishNum) -> Option<usize> {
+            if self.right(num).is_some() {
+                while let Some(_) = self.right(num) {}
+                return Some(self.cursor(num));
             }
 
             loop {
                 let entry = self.stack.pop()?;
                 if entry.dir == Direction::Right {
-                    self.left();
-                    while let Some(_) = self.right() {}
-                    return Some(self.cursor());
+                    self.left(num);
+                    while let Some(_) = self.right(num) {}
+                    return Some(self.cursor(num));
                 }
             }
         }
@@ -126,12 +118,12 @@ mod tree_walker {
 
     #[derive(Clone, Debug)]
     struct StackEntry {
-        node: Rc<RefCell<SnailfishNum>>,
+        node: usize,
         dir: Direction,
     }
 
     impl StackEntry {
-        fn new(node: Rc<RefCell<SnailfishNum>>, dir: Direction) -> Self {
+        fn new(node: usize, dir: Direction) -> Self {
             StackEntry {
                 node: node,
                 dir: dir,
@@ -144,75 +136,50 @@ mod tree_walker {
         Left,
         Right,
     }
-
-    #[cfg(test)]
-    mod tests {
-        use super::*;
-
-        fn test_num(s: &str) -> Rc<RefCell<SnailfishNum>> {
-            let num = parser::num(s).unwrap().1;
-            Rc::new(RefCell::new(num))
-        }
-
-        #[test]
-        fn left_test() {
-            let num = test_num("[7,[6,[5,[4,[3,2]]]]]]");
-            let mut walker = TreeWalker::new(num);
-            assert_eq!(walker.left(), Some(test_num("7")));
-
-            let num = test_num("[[[[[9,8],1],2],3],4]");
-            let mut walker = TreeWalker::new(num);
-            assert_eq!(walker.left(), Some(test_num("[[[[9,8],1],2],3]")));
-            assert_eq!(walker.left(), Some(test_num("[[[9,8],1],2]")));
-            assert_eq!(walker.left(), Some(test_num("[[9,8],1]")));
-        }
-
-        #[test]
-        fn next_test() {
-            let num = test_num("[7,[6,[5,[4,[3,2]]]]]]");
-            let mut walker = TreeWalker::new(num);
-            assert_eq!(walker.next(), Some(test_num("7")));
-            assert_eq!(walker.next(), Some(test_num("6")));
-            assert_eq!(walker.next(), Some(test_num("5")));
-        }
-    }
 }
 
-#[derive(Clone, Eq, PartialEq)]
-pub enum SnailfishNum {
-    Pair(SnailfishPair),
-    Literal(u64),
+#[derive(Clone, Debug)]
+pub struct SnailfishNum {
+    root: usize,
+    nodes: Vec<SnailfishNode>,
 }
 
 impl SnailfishNum {
-    fn add(&mut self, other: SnailfishNum) {
-        let lhs = mem::take(self);
-        let mut new_root = SnailfishNum::from((lhs, other));
-        new_root.reduce();
-        *self = new_root.into();
+    fn from_nodes(nodes: Vec<SnailfishNode>, root: usize) -> Self {
+        Self {
+            root: root,
+            nodes: nodes,
+        }
+    }
+
+    fn add(&mut self, other: &SnailfishNum) {
+        let offset = self.nodes.len();
+        self.nodes.extend_from_slice(&other.nodes);
+
+        // point new nodes at the new locations.
+        for n in &mut self.nodes[offset..] {
+            if let SnailfishNode::Pair(ref mut pair) = n {
+                pair.left += offset;
+                pair.right += offset;
+            }
+        }
+
+        // add new root node
+        let new_root = SnailfishNode::from((self.root, other.root + offset));
+        self.root = self.add_node(new_root);
+
+        self.reduce();
     }
 
     fn magnitude(&self) -> u64 {
-        match self {
-            SnailfishNum::Literal(l) => *l,
-            SnailfishNum::Pair(p) => {
-                p.left.borrow().magnitude() * 3 + p.right.borrow().magnitude() * 2
+        fn m_rec(num: &SnailfishNum, index: usize) -> u64 {
+            match &num.nodes[index] {
+                SnailfishNode::Literal(l) => *l,
+                SnailfishNode::Pair(p) => m_rec(num, p.left) * 3 + m_rec(num, p.right) * 2,
             }
         }
-    }
 
-    fn as_pair(&self) -> Option<&SnailfishPair> {
-        match self {
-            SnailfishNum::Pair(p) => Some(p),
-            SnailfishNum::Literal(_) => None,
-        }
-    }
-
-    fn unwrap_literal(&self) -> u64 {
-        match self {
-            SnailfishNum::Literal(l) => *l,
-            SnailfishNum::Pair(_) => panic!("unwrap_literal: called on pair"),
-        }
+        m_rec(self, self.root)
     }
 
     fn reduce(&mut self) {
@@ -230,148 +197,196 @@ impl SnailfishNum {
     }
 
     fn reduce_explode(&mut self) -> bool {
-        let root = Rc::new(RefCell::new(mem::take(self)));
-        let mut walker = TreeWalker::new(root.clone());
+        let mut walker = TreeWalker::new();
 
         // find pair to explode
         loop {
-            if walker.next().is_none() {
-                drop(walker);
-                *self = Rc::try_unwrap(root).unwrap().into_inner();
+            if walker.next(self).is_none() {
                 return false;
             }
 
             if walker.depth() > 5 {
-                walker.up();
+                walker.up(self);
                 break;
             }
         }
 
         let exploding_pair = {
-            let node = mem::take(&mut *walker.cursor().borrow_mut());
-            let pair = node.as_pair().unwrap();
-            let left = pair.left.borrow().unwrap_literal();
-            let right = pair.right.borrow().unwrap_literal();
+            let pair = self.nodes[walker.cursor(self)].as_pair().unwrap();
+            let left = self.nodes[pair.left].unwrap_literal();
+            let right = self.nodes[pair.right].unwrap_literal();
             (left, right)
         };
 
+        // replace exploding pair with 0
+        let cur = walker.cursor(self);
+        self.nodes[cur] = SnailfishNode::default();
+
         let mut walker2 = walker.clone();
 
-        if let Some(left_num) = walker.prev() {
-            let v = left_num.borrow().unwrap_literal();
-            mem::swap(
-                &mut *left_num.borrow_mut(),
-                &mut (v + exploding_pair.0).into(),
-            )
+        if let Some(left_num) = walker.prev(self) {
+            let v = self.nodes[left_num].unwrap_literal();
+            self.nodes[left_num] = (v + exploding_pair.0).into();
         }
 
-        if let Some(right_num) = walker2.next() {
-            let v = right_num.borrow().unwrap_literal();
-            mem::swap(
-                &mut *right_num.borrow_mut(),
-                &mut (v + exploding_pair.1).into(),
-            )
+        if let Some(right_num) = walker2.next(self) {
+            let v = self.nodes[right_num].unwrap_literal();
+            self.nodes[right_num] = (v + exploding_pair.1).into();
         }
 
-        drop(walker);
-        drop(walker2);
-        *self = Rc::try_unwrap(root).unwrap().into_inner();
         true
     }
 
     fn reduce_split(&mut self) -> bool {
-        let root = Rc::new(RefCell::new(mem::take(self)));
-        let mut walker = TreeWalker::new(root.clone());
-        while let Some(node) = walker.next() {
-            let n = node.borrow().unwrap_literal();
+        let mut walker = TreeWalker::new();
+        while let Some(node) = walker.next(self) {
+            let n = self.nodes[node].unwrap_literal();
             if n > 9 {
-                let left = SnailfishNum::from(n / 2);
-                let right = SnailfishNum::from((n + 1) / 2);
-                *node.borrow_mut() = SnailfishNum::from((left, right));
-                drop(walker);
-                *self = Rc::try_unwrap(root).unwrap().into_inner();
+                let left = self.add_node(SnailfishNode::from(n / 2));
+                let right = self.add_node(SnailfishNode::from((n + 1) / 2));
+
+                self.nodes[node] = SnailfishNode::from((left, right));
                 return true;
             }
         }
-        drop(walker);
-        *self = Rc::try_unwrap(root).unwrap().into_inner();
+
         false
     }
-}
 
-impl Default for SnailfishNum {
-    fn default() -> Self {
-        SnailfishNum::Literal(0)
-    }
-}
-
-impl From<u64> for SnailfishNum {
-    fn from(i: u64) -> Self {
-        SnailfishNum::Literal(i)
-    }
-}
-
-impl From<SnailfishPair> for SnailfishNum {
-    fn from(p: SnailfishPair) -> Self {
-        SnailfishNum::Pair(p)
-    }
-}
-
-impl From<(SnailfishNum, SnailfishNum)> for SnailfishNum {
-    fn from(p: (SnailfishNum, SnailfishNum)) -> Self {
-        SnailfishPair::from(p).into()
+    fn add_node(&mut self, node: SnailfishNode) -> usize {
+        let id = self.nodes.len();
+        self.nodes.push(node);
+        id
     }
 }
 
 impl fmt::Display for SnailfishNum {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            SnailfishNum::Literal(l) => write!(f, "{}", l),
-            SnailfishNum::Pair(p) => {
-                f.write_char('[')?;
-                p.left.borrow().fmt(f)?;
-                f.write_char(',')?;
-                p.right.borrow().fmt(f)?;
-                f.write_char(']')?;
-                Ok(())
+        fn rec_fmt(f: &mut fmt::Formatter<'_>, nodes: &[SnailfishNode], i: usize) -> fmt::Result {
+            match &nodes[i] {
+                SnailfishNode::Literal(l) => write!(f, "{}", l),
+                SnailfishNode::Pair(p) => {
+                    f.write_char('[')?;
+                    rec_fmt(f, nodes, p.left)?;
+                    f.write_char(',')?;
+                    rec_fmt(f, nodes, p.right)?;
+                    f.write_char(']')?;
+                    Ok(())
+                }
             }
         }
+
+        rec_fmt(f, &self.nodes, self.root)
     }
 }
 
-impl fmt::Debug for SnailfishNum {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+#[derive(Clone, Copy, Debug)]
+pub enum SnailfishNode {
+    Pair(SnailfishPair),
+    Literal(u64),
+}
+
+impl SnailfishNode {
+    fn as_pair(&self) -> Option<&SnailfishPair> {
+        match self {
+            SnailfishNode::Pair(p) => Some(p),
+            SnailfishNode::Literal(_) => None,
+        }
     }
-}
 
-#[derive(Debug, Default, PartialEq, Eq)]
-pub struct SnailfishPair {
-    left: Rc<RefCell<SnailfishNum>>,
-    right: Rc<RefCell<SnailfishNum>>,
-}
-
-impl From<(SnailfishNum, SnailfishNum)> for SnailfishPair {
-    fn from(p: (SnailfishNum, SnailfishNum)) -> Self {
-        SnailfishPair {
-            left: Rc::new(RefCell::new(p.0)),
-            right: Rc::new(RefCell::new(p.1)),
+    fn unwrap_literal(&self) -> u64 {
+        match self {
+            SnailfishNode::Literal(l) => *l,
+            SnailfishNode::Pair(_) => panic!("unwrap_literal: called on pair"),
         }
     }
 }
 
-impl Clone for SnailfishPair {
-    fn clone(&self) -> Self {
-        SnailfishPair {
-            left: Rc::new((*self.left).clone()),
-            right: Rc::new((*self.right).clone()),
+impl Default for SnailfishNode {
+    fn default() -> Self {
+        SnailfishNode::Literal(0)
+    }
+}
+
+impl From<u64> for SnailfishNode {
+    fn from(i: u64) -> Self {
+        SnailfishNode::Literal(i)
+    }
+}
+
+impl From<SnailfishPair> for SnailfishNode {
+    fn from(p: SnailfishPair) -> Self {
+        SnailfishNode::Pair(p)
+    }
+}
+
+impl From<(usize, usize)> for SnailfishNode {
+    fn from(p: (usize, usize)) -> Self {
+        SnailfishPair::from(p).into()
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct SnailfishPair {
+    left: usize,
+    right: usize,
+}
+
+impl From<(usize, usize)> for SnailfishPair {
+    fn from(p: (usize, usize)) -> Self {
+        Self {
+            left: p.0,
+            right: p.1,
         }
     }
 }
 
 mod parser {
-    use super::SnailfishNum;
+    use super::{SnailfishNode, SnailfishNum};
     use crate::lib::combinators::*;
+    use std::cell::RefCell;
+
+    #[derive(Clone, Debug, Default)]
+    struct SnailfishNumParser {
+        nodes: RefCell<Vec<SnailfishNode>>,
+    }
+
+    impl SnailfishNumParser {
+        fn new() -> Self {
+            Self::default()
+        }
+
+        fn add_node(&self, node: SnailfishNode) -> usize {
+            let mut nodes = self.nodes.borrow_mut();
+            let id = nodes.len();
+            nodes.push(node);
+            id
+        }
+
+        fn into_inner(self) -> Vec<SnailfishNode> {
+            self.nodes.into_inner()
+        }
+
+        fn node<'a>(&self, input: &'a str) -> IResult<&'a str, usize> {
+            alt((|i| self.literal(i), |i| self.pair(i)))(input)
+        }
+
+        fn literal<'a>(&self, input: &'a str) -> IResult<&'a str, usize> {
+            let (rest, node) = into(uint::<u64>)(input)?;
+            Ok((rest, self.add_node(node)))
+        }
+
+        fn pair<'a>(&self, input: &'a str) -> IResult<&'a str, usize> {
+            let p = delimited(
+                tag("["),
+                separated_pair(|i| self.node(i), tag(","), |i| self.node(i)),
+                tag("]"),
+            );
+
+            let (rest, node) = into(p)(input)?;
+            Ok((rest, self.add_node(node)))
+        }
+    }
 
     pub fn parse(input: &str) -> IResult<&str, Vec<SnailfishNum>> {
         let parser = separated_list1(line_ending, num);
@@ -379,17 +394,10 @@ mod parser {
     }
 
     pub fn num(input: &str) -> IResult<&str, SnailfishNum> {
-        alt((literal, pair))(input)
-    }
-
-    fn literal(input: &str) -> IResult<&str, SnailfishNum> {
-        map(uint::<u64>, |x| x.into())(input)
-    }
-
-    fn pair(input: &str) -> IResult<&str, SnailfishNum> {
-        let p = delimited(tag("["), separated_pair(num, tag(","), num), tag("]"));
-        let mut parser = map(p, |x| x.into());
-        parser(input)
+        let parser = SnailfishNumParser::new();
+        let (rest, root) = parser.node(input)?;
+        let ret = SnailfishNum::from_nodes(parser.into_inner(), root);
+        Ok((rest, ret))
     }
 }
 
@@ -465,8 +473,7 @@ mod tests {
         ];
 
         for (expected, input) in tests {
-            let num = parser::num(expected).unwrap().1;
-            assert_eq!(add_nums(input), num);
+            assert_eq!(format!("{}", add_nums(input)), expected);
         }
     }
 
