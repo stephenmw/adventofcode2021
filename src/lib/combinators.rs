@@ -4,10 +4,11 @@ pub use nom::{
     branch::alt,
     bytes::complete::{is_a, tag, take_while},
     character::complete::{anychar, line_ending, multispace0, one_of, space0, space1},
-    combinator::{eof, into, map, map_res, opt, recognize, verify},
+    combinator::{eof, into, map, map_res, opt, recognize, value, verify},
+    error::ParseError,
     multi::{count, many1, separated_list1},
-    sequence::{delimited, preceded, separated_pair, terminated, tuple},
-    IResult,
+    sequence::{delimited, pair, preceded, separated_pair, terminated, tuple},
+    IResult, Parser,
 };
 
 pub fn is_alphabetic(c: char) -> bool {
