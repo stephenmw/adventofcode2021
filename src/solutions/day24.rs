@@ -1,63 +1,68 @@
-use std::collections::HashMap;
+use std::collections::HashSet;
 
 pub fn problem1(input: &str) -> String {
     let program = parser::parse(input).unwrap().1;
-    let mut seen = HashMap::from_iter([(RegisterState::default(), vec![])]);
-    for i in 0..14 {
-        seen = find_possible_states(&program, &seen);
-        println!("{}: {}", i, seen.len());
-    }
+    dfs_model_number(&program, true)
+}
 
-    let digits = seen
-        .iter()
-        .filter(|x| x.0.z == 0)
-        .max_by_key(|x| x.1)
-        .unwrap()
-        .1;
+pub fn problem2(input: &str) -> String {
+    let program = parser::parse(input).unwrap().1;
+    dfs_model_number(&program, false)
+}
+
+fn dfs_model_number(program: &[Instruction], max: bool) -> String {
+    let mut path = Vec::new();
+    dfs_model_number_rec(
+        max,
+        program,
+        &mut path,
+        &mut HashSet::new(),
+        RegisterState::default(),
+    );
 
     String::from_iter(
-        digits
-            .iter()
+        path.iter()
             .map(|x| char::from_digit(*x as u32, 10).unwrap()),
     )
 }
 
-pub fn problem2(_input: &str) -> String {
-    unimplemented!();
-}
-
-fn find_possible_states(
+fn dfs_model_number_rec(
+    max: bool,
     program: &[Instruction],
-    prev_seen: &HashMap<RegisterState, Vec<i64>>,
-) -> HashMap<RegisterState, Vec<i64>> {
-    let mut seen = HashMap::new();
-
-    for (current_state, current_val) in prev_seen {
-        for i in 1..10 {
-            let state = match run_machine(program, current_state.clone(), i) {
-                InterruptState::InputRequred(s) => s,
-                InterruptState::Crashed => continue,
-                InterruptState::Complete(s) => s,
-            };
-
-            seen.entry(state)
-                .and_modify(|x: &mut Vec<_>| {
-                    if *x <= *current_val {
-                        x.truncate(0);
-                        x.extend_from_slice(current_val.as_slice());
-                        x.push(i);
-                    }
-                })
-                .or_insert_with(|| {
-                    let mut x = Vec::with_capacity(current_val.len() + 1);
-                    x.extend_from_slice(current_val.as_slice());
-                    x.push(i);
-                    x
-                });
-        }
+    path: &mut Vec<i64>,
+    seen: &mut HashSet<RegisterState>,
+    state: RegisterState,
+) -> bool {
+    if seen.contains(&state) {
+        return false;
     }
 
-    seen
+    let nums: Box<dyn Iterator<Item = i64>> = match max {
+        true => Box::new((1..10).rev()),
+        false => Box::new(1..10),
+    };
+
+    for i in nums {
+        path.push(i);
+        match run_machine(program, state, i) {
+            InterruptState::InputRequred(s) => {
+                let ok = dfs_model_number_rec(max, program, path, seen, s);
+                seen.insert(s);
+                if ok {
+                    return true;
+                }
+            }
+            InterruptState::Crashed => (),
+            InterruptState::Complete(s) => {
+                if s.z == 0 {
+                    return true;
+                }
+            }
+        }
+        path.pop();
+    }
+
+    false
 }
 
 fn run_machine(program: &[Instruction], state: RegisterState, input: i64) -> InterruptState {
