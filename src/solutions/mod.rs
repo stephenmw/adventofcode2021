@@ -22,6 +22,7 @@ mod day19;
 mod day20;
 mod day21;
 mod day22;
+mod day23;
 mod day24;
 mod day25;
 
@@ -59,6 +60,7 @@ fn init_solutions() -> HashMap<(usize, usize), Solution> {
     day!(20, day20);
     day!(21, day21);
     day!(22, day22);
+    day!(23, day23);
     day!(24, day24);
     day!(25, day25);
 
